@@ -101,8 +101,8 @@ class _RegisterState extends State<Register> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      register();
+                    onPressed: () async {
+                      await register();
                       // TODO: เชื่อม Firebase Auth
                       //ScaffoldMessenger.of(context).showSnackBar(
                       // const SnackBar(content: Text("บันทึกข้อมูลเรียบร้อย")),
