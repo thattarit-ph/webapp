@@ -10,7 +10,7 @@ class Register extends StatelessWidget {
     bool acceptTerms = false;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("สร้างบัญชีใหม่"), centerTitle: true),
+      appBar: AppBar(title: const Text("สร้างบัญชี"), centerTitle: true),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
