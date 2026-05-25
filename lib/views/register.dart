@@ -1,14 +1,36 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class Register extends StatelessWidget {
+class Register extends StatefulWidget {
   const Register({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    bool acceptTerms = false;
+  State<Register> createState() => _RegisterState();
+}
 
+class _RegisterState extends State<Register> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  bool acceptTerms = false;
+
+  Future<void> register() async {
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("สมัครสมาชิกสำเร็จ")));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("เกิดข้อผิดพลาด: $e")));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("สร้างบัญชี"), centerTitle: true),
       body: Center(
@@ -80,10 +102,11 @@ class Register extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
+                      register();
                       // TODO: เชื่อม Firebase Auth
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("บันทึกข้อมูลเรียบร้อย")),
-                      );
+                      //ScaffoldMessenger.of(context).showSnackBar(
+                      // const SnackBar(content: Text("บันทึกข้อมูลเรียบร้อย")),
+                      //);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,

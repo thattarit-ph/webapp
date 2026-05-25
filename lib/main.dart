@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 //import 'package:webapp/views/register.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:webapp/views/create_post.dart';
+import 'package:webapp/views/home_page.dart';
+import 'package:webapp/views/login.dart';
+import 'package:webapp/views/post_detail.dart';
 import 'package:webapp/views/register.dart';
 
 void main() async {
