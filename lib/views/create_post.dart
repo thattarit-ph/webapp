@@ -27,6 +27,7 @@ class _CreateThreadPageState extends State<CreatePost> {
             fontSize: 30,
             fontWeight: FontWeight.bold,
             color: Colors.white,
+            fontStyle: FontStyle.italic,
           ),
         ),
       ),
@@ -163,13 +164,16 @@ class _CreateThreadPageState extends State<CreatePost> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                          ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
                         ),
-                      child: const Text("ยกเลิก",style: TextStyle(fontWeight: FontWeight.bold),),
+                      ),
+                      child: const Text(
+                        "ยกเลิก",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),

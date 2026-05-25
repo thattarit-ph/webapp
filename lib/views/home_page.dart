@@ -19,6 +19,7 @@ class WebBoardPage extends StatelessWidget {
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 30,
+            fontStyle: FontStyle.italic,
           ),
         ),
         actions: [
@@ -62,7 +63,10 @@ class WebBoardPage extends StatelessWidget {
                     children: [
                       const Text(
                         "ออกระบบ",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                       SizedBox(width: 10),
                       Icon(Icons.exit_to_app),

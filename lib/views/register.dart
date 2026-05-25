@@ -14,6 +14,7 @@ class _RegisterState extends State<Register> {
   final passwordController = TextEditingController();
   bool acceptTerms = false;
   bool showPassword = false;
+
   Future<void> register() async {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -38,7 +39,11 @@ class _RegisterState extends State<Register> {
         backgroundColor: Colors.indigo,
         title: const Text(
           "กระทู้ของฉัน",
-          style: TextStyle(fontSize: 35, fontStyle: FontStyle.italic,color: Colors.white),
+          style: TextStyle(
+            fontSize: 35,
+            fontStyle: FontStyle.italic,
+            color: Colors.white,
+          ),
         ),
       ),
       body: Center(
@@ -64,7 +69,6 @@ class _RegisterState extends State<Register> {
                   child: const Text(
                     "สร้างบัญชีผู้ใช้ของคุณ",
                     style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -116,7 +120,14 @@ class _RegisterState extends State<Register> {
                       backgroundColor: Colors.indigo,
                       padding: const EdgeInsets.symmetric(vertical: 15),
                     ),
-                    child: const Text("บันทึก", style: TextStyle(fontSize: 20,color: Colors.white,fontWeight:FontWeight.bold)),
+                    child: const Text(
+                      "บันทึก",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -125,7 +136,10 @@ class _RegisterState extends State<Register> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("มีบัญชีอยู่แล้ว? ",style: TextStyle(fontSize: 18),),
+                    const Text(
+                      "มีบัญชีอยู่แล้ว? ",
+                      style: TextStyle(fontSize: 18),
+                    ),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
@@ -135,7 +149,10 @@ class _RegisterState extends State<Register> {
                           ),
                         );
                       },
-                      child: const Text("เข้าสู่ระบบ",style: TextStyle(fontSize: 16),),
+                      child: const Text(
+                        "เข้าสู่ระบบ",
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ],
                 ),
