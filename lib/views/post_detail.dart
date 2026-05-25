@@ -1,4 +1,5 @@
 // import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart'; // 💡 1. อย่าลืมนำเข้า FirebaseAuth
 // import 'package:flutter/material.dart';
 //
 // class PostDetail extends StatefulWidget {
@@ -12,82 +13,68 @@
 // class _PostDetailState extends State<PostDetail> {
 //   final commentController = TextEditingController();
 //
-//   // mock data
-//   final Map<String, Map<String, dynamic>> mockArticles = {
-//     "mock1": {
-//       "title": "วิธีป้องกันการโจมตีแบบ Phishing ในองค์กรขนาดใหญ่ ปี 2024",
-//       "content": "รายละเอียดของบทความนี้...",
-//       "comments": [
-//         "การใช้ FIDO2 ดีมากครับ เพิ่มความปลอดภัยได้จริง",
-//         "องค์กรควรทำ Phishing Simulation บ่อย ๆ",
-//         "MFA เป็นสิ่งจำเป็นในยุคนี้"
-//       ]
-//     },
-//     "mock2": {
-//       "title": "แชร์ประสบการณ์การใช้ Cloud Storage",
-//       "content": "การเข้ารหัสข้อมูลและ IAM ช่วยให้ปลอดภัยขึ้น...",
-//       "comments": ["เห็นด้วยครับ", "ควรใช้ Zero Trust ด้วย"]
-//     }
-//   };
-//
 //   @override
 //   Widget build(BuildContext context) {
-//     final article = mockArticles[widget.threadId];
-//
-//     if (article == null) {
-//       return const Scaffold(
-//         body: Center(child: Text("ไม่พบกระทู้ที่เลือก")),
-//       );
-//     }
+//     // 💡 2. ดึง UID ของผู้ใช้งานปัจจุบันที่กำลังเปิดแอปอยู่
+//     final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
 //
 //     return Scaffold(
 //       appBar: AppBar(title: const Text("รายละเอียดกระทู้")),
-//         body: StreamBuilder<DocumentSnapshot>(
-//           // ดึงข้อมูลกระทู้เดียวตาม threadId ที่ถูกส่งมา
-//           stream: FirebaseFirestore.instance.collection('posts').doc(widget.threadId).snapshots(),
-//           builder: (context, snapshot) {
-//             if (snapshot.connectionState == ConnectionState.waiting) {
-//               return const Center(child: CircularProgressIndicator());
-//             }
-//             if (!snapshot.hasData || !snapshot.data!.exists) {
-//               return const Center(child: Text("ไม่พบกระทู้ที่เลือก หรือกระทู้ถูกลบไปแล้ว"));
-//             }
+//       body: StreamBuilder<DocumentSnapshot>(
+//         stream: FirebaseFirestore.instance.collection('posts').doc(widget.threadId).snapshots(),
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return const Center(child: CircularProgressIndicator());
+//           }
 //
-//             final article = snapshot.data!.data() as Map<String, dynamic>;
-//             final commentsList = article["comments"] as List<dynamic>? ?? [];
+//           if (!snapshot.hasData || !snapshot.data!.exists) {
+//             return const Center(child: Text("ไม่พบกระทู้ที่เลือก หรือกระทู้ถูกลบไปแล้ว"));
+//           }
 //
-//             return SingleChildScrollView(
-//               padding: const EdgeInsets.all(16),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   // Title
-//                   Text(article["title"] ?? "",
-//                       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-//                   const SizedBox(height: 12),
+//           final article = snapshot.data!.data() as Map<String, dynamic>;
+//           final commentsList = article["comments"] as List<dynamic>? ?? [];
+//           final bool canComment = article["canComment"] ?? true;
 //
-//                   // Content
-//                   Text(article["content"] ?? "", style: const TextStyle(fontSize: 16)),
-//                   const Divider(height: 32),
+//           // 💡 3. ดึง ID ของคนสร้างกระทู้มาจาก Firestore (สมมติว่าใช้ชื่อฟิลด์ 'authorId')
+//           // *หมายเหตุ*: ตอนสั่งบันทึกที่หน้า create_post.dart อย่าลืมเพิ่มฟิลด์ "authorId": FirebaseAuth.instance.currentUser?.uid เข้าไปด้วยนะครับ
+//           final String? authorId = article["authorId"];
 //
-//                   // Comments Section
-//                   const Text("ความคิดเห็น", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-//                   const SizedBox(height: 12),
+//           // 💡 4. เช็กเงื่อนไขว่าผู้ใช้งานปัจจุบันคือเจ้าของกระทู้ใช่หรือไม่
+//           final bool isOwner = currentUserId != null && currentUserId == authorId;
 //
-//                   if (commentsList.isEmpty)
-//                     const Text("ยังไม่มีความคิดเห็น เป็นคนแรกที่คอมเมนต์สิ!", style: TextStyle(color: Colors.grey)),
+//           return SingleChildScrollView(
+//             padding: const EdgeInsets.all(16),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 // Title
+//                 Text(article["title"] ?? "", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+//                 const SizedBox(height: 12),
 //
-//                   for (var comment in commentsList)
-//                     Card(
-//                       margin: const EdgeInsets.only(bottom: 8),
-//                       child: Padding(
-//                         padding: const EdgeInsets.all(12),
-//                         child: Text(comment.toString()),
-//                       ),
+//                 // Content
+//                 Text(article["content"] ?? "", style: const TextStyle(fontSize: 16)),
+//                 const Divider(height: 32),
+//
+//                 // Comments Section
+//                 const Text("ความคิดเห็น", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+//                 const SizedBox(height: 12),
+//
+//                 if (commentsList.isEmpty)
+//                   const Text("ยังไม่มีความคิดเห็น", style: TextStyle(color: Colors.grey)),
+//
+//                 for (var comment in commentsList)
+//                   Card(
+//                     margin: const EdgeInsets.only(bottom: 8),
+//                     child: Padding(
+//                       padding: const EdgeInsets.all(12),
+//                       child: Text(comment.toString()),
 //                     ),
+//                   ),
 //
-//                   const SizedBox(height: 20),
+//                 const SizedBox(height: 20),
 //
+//                 // ส่วนจัดการกล่องคอมเมนต์ตามสถานะ canComment
+//                 if (canComment) ...[
 //                   // Comment Box
 //                   TextField(
 //                     controller: commentController,
@@ -114,10 +101,9 @@
 //                             final newComment = commentController.text.trim();
 //                             commentController.clear();
 //
-//                             // อัปเดตข้อมูลลง Firestore: เพิ่มข้อความลงใน Array และบวกเลขคอมเมนต์
 //                             await FirebaseFirestore.instance.collection('posts').doc(widget.threadId).update({
-//                               "comments": FieldValue.arrayUnion([newComment]), // เอาเข้า Array
-//                               "comments_count": FieldValue.increment(1), // บวกตัวเลขโชว์หน้าแรก 1
+//                               "comments": FieldValue.arrayUnion([newComment]),
+//                               "comments_count": FieldValue.increment(1),
 //                             });
 //                           }
 //                         },
@@ -125,15 +111,48 @@
 //                       ),
 //                     ],
 //                   ),
+//                 ] else ...[
+//                   // ป้ายเตือนผู้ใช้งานเมื่อกระทู้นี้ถูกปิดคอมเมนต์
+//                   Container(
+//                     width: double.infinity,
+//                     padding: const EdgeInsets.all(16),
+//                     decoration: BoxDecoration(
+//                       color: Colors.grey[200],
+//                       borderRadius: BorderRadius.circular(8),
+//                     ),
+//                     child: const Row(
+//                       mainAxisAlignment:MainAxisAlignment.center ,
+//                       children: [
+//                         Icon(Icons.lock, color: Colors.grey),
+//                         SizedBox(width: 8),
+//                         Text("กระทู้นี้ถูกปิดการแสดงความคิดเห็นโดยผู้สร้าง", style: TextStyle(color: Colors.black54)),
+//                       ],
+//                     ),
+//                   ),
+//
+//                   SizedBox(height: 20,),
+//                   Align(
+//                     alignment: Alignment.centerRight,
+//                     child: ElevatedButton.icon(
+//                       icon: Icon(canComment ? Icons.comments_disabled : Icons.comment),
+//                       label: Text(canComment ? "ปิดคอมเมนต์" : "เปิดคอมเมนต์"),
+//                       onPressed: () async {
+//                         await FirebaseFirestore.instance.collection('posts').doc(widget.threadId).update({
+//                           "canComment": !canComment, // สลับค่าจาก true เป็น false หรือ false เป็น true
+//                         });
+//                       },
+//                     ),
+//                   ),
 //                 ],
-//               ),
-//             );
-//           },
-//         ),
+//               ],
+//             ),
+//           );        },
+//       ),
 //     );
 //   }
 // }
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class PostDetail extends StatefulWidget {
@@ -147,33 +166,33 @@ class PostDetail extends StatefulWidget {
 class _PostDetailState extends State<PostDetail> {
   final commentController = TextEditingController();
 
-  // 💡 ลบตัวแปร mockArticles ทิ้งไปได้เลยครับ
-
   @override
   Widget build(BuildContext context) {
-    // 💡 ลบการเช็กด้วย mockArticles ตรงนี้ออกไปเลย
+    // ดึง UID ของผู้ใช้งานปัจจุบันที่กำลังเปิดแอปอยู่
+    final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
       appBar: AppBar(title: const Text("รายละเอียดกระทู้")),
       body: StreamBuilder<DocumentSnapshot>(
-        // ดึงข้อมูลกระทู้เดียวตาม threadId ที่ถูกส่งมาจาก Firestore
         stream: FirebaseFirestore.instance.collection('posts').doc(widget.threadId).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // ตัว StreamBuilder จะทำหน้าที่เช็กข้อมูลจาก Firebase ให้เองตรงนี้อยู่แล้วครับ ปลอดภัยแน่นอน
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(child: Text("ไม่พบกระทู้ที่เลือก หรือกระทู้ถูกลบไปแล้ว"));
           }
 
-
           final article = snapshot.data!.data() as Map<String, dynamic>;
           final commentsList = article["comments"] as List<dynamic>? ?? [];
-
-// 💡 1. ดึงค่าสถานะการเปิด/ปิดคอมเมนต์ (หากไม่มีในโพสต์เก่าให้ตั้งค่าเริ่มต้นเป็น true)
           final bool canComment = article["canComment"] ?? true;
+
+          // ดึง ID ของคนสร้างกระทู้มาจาก Firestore
+          final String? authorId = article["authorId"];
+
+          // เช็กเงื่อนไขว่าผู้ใช้งานปัจจุบันคือเจ้าของกระทู้ใช่หรือไม่
+          final bool isOwner = currentUserId != null && currentUserId == authorId;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -181,15 +200,24 @@ class _PostDetailState extends State<PostDetail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title
-                Text(article["title"] ?? "", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(
+                    article["title"] ?? "",
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+                ),
                 const SizedBox(height: 12),
 
                 // Content
-                Text(article["content"] ?? "", style: const TextStyle(fontSize: 16)),
+                Text(
+                    article["content"] ?? "",
+                    style: const TextStyle(fontSize: 16)
+                ),
                 const Divider(height: 32),
 
-                // Comments Section (ส่วนนี้แสดงผลคอมเมนต์เก่าตามปกติ ไม่ว่า canComment จะเป็นอะไร)
-                const Text("ความคิดเห็น", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                // Comments Section
+                const Text(
+                    "ความคิดเห็น",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                ),
                 const SizedBox(height: 12),
 
                 if (commentsList.isEmpty)
@@ -206,7 +234,24 @@ class _PostDetailState extends State<PostDetail> {
 
                 const SizedBox(height: 20),
 
-                // 💡 2. ใช้เงื่อนไขควบคุม: ถ้าเปิดอยู่ (true) ให้แสดงกล่องคอมเมนต์ แต่ถ้าปิดอยู่ (false) ให้แสดงป้ายเตือนแทน
+                // 🟢 ส่วนปุ่มจัดการสำหรับ "เจ้าของกระทู้" เท่านั้น
+                if (isOwner) ...[
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton.icon(
+                      icon: Icon(canComment ? Icons.comments_disabled : Icons.comment),
+                      label: Text(canComment ? "ปิดคอมเมนต์" : "เปิดคอมเมนต์"),
+                      onPressed: () async {
+                        await FirebaseFirestore.instance.collection('posts').doc(widget.threadId).update({
+                          "canComment": !canComment, // สลับค่าจาก true เป็น false หรือ false เป็น true
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // 🟢 ส่วนจัดการกล่องคอมเมนต์ตามสถานะ canComment (ทุกคนเห็นตามการตั้งค่าของเจ้าของ)
                 if (canComment) ...[
                   // Comment Box
                   TextField(
@@ -223,18 +268,6 @@ class _PostDetailState extends State<PostDetail> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      // ตัวอย่างคำสั่งสลับเปลี่ยนสถานะเปิด-ปิดคอมเมนต์
-                      ElevatedButton.icon(
-                        icon: Icon(canComment ? Icons.comments_disabled : Icons.comment),
-                        label: Text(canComment ? "ปิดคอมเมนต์" : "เปิดคอมเมนต์"),
-                        onPressed: () async {
-                          await FirebaseFirestore.instance.collection('posts').doc(widget.threadId).update({
-                            "canComment": !canComment, // สลับค่าจาก true เป็น false หรือ false เป็น true
-                          });
-                        },
-                      ),
-                      const SizedBox(width: 12),
-
                       OutlinedButton(
                         onPressed: () => commentController.clear(),
                         child: const Text("ยกเลิก"),
@@ -242,6 +275,14 @@ class _PostDetailState extends State<PostDetail> {
                       const SizedBox(width: 12),
                       ElevatedButton(
                         onPressed: () async {
+                          // เช็กกันเหนียวว่ามีคนล็อกอินอยู่ ถึงจะให้คอมเมนต์ได้
+                          if (currentUserId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("กรุณาล็อกอินก่อนแสดงความคิดเห็น")),
+                            );
+                            return;
+                          }
+
                           if (commentController.text.isNotEmpty) {
                             final newComment = commentController.text.trim();
                             commentController.clear();
@@ -257,7 +298,7 @@ class _PostDetailState extends State<PostDetail> {
                     ],
                   ),
                 ] else ...[
-                  // 💡 ป้ายเตือนผู้ใช้งานเมื่อกระทู้นี้ถูกปิดคอมเมนต์
+                  // ป้ายเตือนผู้ใช้งานเมื่อกระทู้นี้ถูกปิดคอมเมนต์
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -270,27 +311,18 @@ class _PostDetailState extends State<PostDetail> {
                       children: [
                         Icon(Icons.lock, color: Colors.grey),
                         SizedBox(width: 8),
-                        Text("กระทู้นี้ถูกปิดการแสดงความคิดเห็นโดยผู้สร้าง", style: TextStyle(color: Colors.black54)),
+                        Text(
+                            "กระทู้นี้ถูกปิดการแสดงความคิดเห็นโดยผู้สร้าง",
+                            style: TextStyle(color: Colors.black54)
+                        ),
                       ],
-                    ),
-                  ),
-                  SizedBox(height: 20,),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton.icon(
-                      icon: Icon(canComment ? Icons.comments_disabled : Icons.comment),
-                      label: Text(canComment ? "ปิดคอมเมนต์" : "เปิดคอมเมนต์"),
-                      onPressed: () async {
-                        await FirebaseFirestore.instance.collection('posts').doc(widget.threadId).update({
-                          "canComment": !canComment, // สลับค่าจาก true เป็น false หรือ false เป็น true
-                        });
-                      },
                     ),
                   ),
                 ],
               ],
             ),
-          );        },
+          );
+        },
       ),
     );
   }

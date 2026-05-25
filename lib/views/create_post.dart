@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class CreatePost extends StatefulWidget {
   const CreatePost({super.key});
 
@@ -71,45 +71,63 @@ class _CreateThreadPageState extends State<CreatePost> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: () async {
-                        // ตรวจสอบว่ากรอกข้อมูลครบไหม
-                        if (titleController.text.isEmpty || contentController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("กรุณากรอกข้อมูลให้ครบถ้วน")),
-                          );
-                          return;
-                        }
+                    onPressed: () async {
+          // 1. ตรวจสอบว่ากรอกข้อมูลครบไหม
+          if (titleController.text.isEmpty || contentController.text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("กรุณากรอกข้อมูลให้ครบถ้วน")),
+          );
+          return;
+          }
 
-                        try {
-                          // โยนข้อมูลขึ้น Collection ที่ชื่อว่า 'posts'
-                          await FirebaseFirestore.instance.collection('posts').add({
-                            "title": titleController.text.trim(),
-                            "content": contentController.text.trim(),
-                            "preview": contentController.text.substring(0, contentController.text.length > 50 ? 50 : contentController.text.length) + "...", // ทำพรีวิวสั้นๆ
-                            "comments_count": 0,
-                            "likes": 0,
-                            "views": 0,
-                            "category": "ทั่วไป", // ตรงนี้อนาคตค่อยทำ Dropdown เลือกหมวดหมู่ได้
-                            "comments": [], // สร้าง Array ว่างๆ ไว้รอรับคอมเมนต์
-                            "canComment": true,
-                            "createdAt": FieldValue.serverTimestamp(), // เก็บเวลาที่ตั้งกระทู้
-                          });
+          // 2. ดึงข้อมูล User ปัจจุบันที่ล็อกอินอยู่
+          final currentUser = FirebaseAuth.instance.currentUser;
 
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("บันทึกกระทู้เรียบร้อย")),
-                          );
-                          Navigator.pop(context); // กลับไปหน้าแรก
+          // ตรวจสอบกันเหนียวว่า User ล็อกอินอยู่จริงๆ
+          if (currentUser == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("กรุณาล็อกอินก่อนตั้งกระทู้")),
+          );
+          return;
+          }
 
-                        } catch (e) {
-                          log("message : $e");
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
-                          );
-                        }
-                      },
-                      child: const Text("บันทึก"),
-                    ),
+          try {
+          // 3. โยนข้อมูลขึ้น Collection ที่ชื่อว่า 'posts' พร้อมข้อมูลคนโพสต์
+          await FirebaseFirestore.instance.collection('posts').add({
+          "title": titleController.text.trim(),
+          "content": contentController.text.trim(),
+          "preview": contentController.text.length > 50
+          ? "${contentController.text.substring(0, 50)}..."
+              : contentController.text, // เขียนแบบย่อให้อ่านง่ายขึ้น
+          "comments_count": 0,
+          "likes": 0,
+          "views": 0,
+          "category": "ทั่วไป",
+          "comments": [],
+          "canComment": true,
+          "createdAt": FieldValue.serverTimestamp(),
+
+          // 🟢 ส่วนที่เพิ่มเข้ามาเพื่อให้รู้ว่าใครสร้างกระทู้
+          "authorId": currentUser.uid, // เก็บ UID ไว้ใช้อ้างอิง (สำคัญมาก)
+          "authorName": currentUser.displayName ?? "ผู้ใช้งานทั่วไป", // เก็บชื่อ
+          // "authorPhoto": currentUser.photoURL ?? "", // เก็บรูปโปรไฟล์ (ถ้ามี)
+          });
+
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("บันทึกกระทู้เรียบร้อย")),
+          );
+          Navigator.pop(context); // กลับไปหน้าแรก
+
+          } catch (e) {
+          log("message : $e");
+          ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
+          );
+          }
+          },
+            child: const Text("บันทึก"),
+          ),
 
                     const SizedBox(width: 12),
                     OutlinedButton(
