@@ -13,7 +13,7 @@ class _RegisterState extends State<Register> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool acceptTerms = false;
-
+  bool showPassword = false;
   Future<void> register() async {
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -33,11 +33,18 @@ class _RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("สร้างบัญชี"), centerTitle: true),
+      backgroundColor: Colors.indigo.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.indigo,
+        title: const Text(
+          "กระทู้ของฉัน",
+          style: TextStyle(fontSize: 35, fontStyle: FontStyle.italic,color: Colors.white),
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
-            width: 400, // กำหนดความกว้างฟอร์ม
+            width: 400,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -53,14 +60,18 @@ class _RegisterState extends State<Register> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "กรอกข้อมูลเพื่อเริ่มต้นใช้งาน",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                Center(
+                  child: const Text(
+                    "สร้างบัญชีผู้ใช้ของคุณ",
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+
+                  ),
                 ),
                 const SizedBox(height: 20),
 
                 // Email
                 TextField(
+                  style: TextStyle(fontSize: 20),
                   controller: emailController,
                   decoration: const InputDecoration(
                     labelText: "อีเมล",
@@ -72,48 +83,40 @@ class _RegisterState extends State<Register> {
 
                 // Password
                 TextField(
+                  style: TextStyle(fontSize: 20),
                   controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: !showPassword,
+                  decoration: InputDecoration(
                     labelText: "รหัสผ่าน",
                     hintText: "********",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                // Checkbox Terms
-                Row(
-                  children: [
-                    Checkbox(
-                      value: acceptTerms,
-                      onChanged: (value) {
-                        // TODO: setState ถ้าใช้ StatefulWidget
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        showPassword ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          showPassword = !showPassword;
+                        });
                       },
                     ),
-                    const Expanded(
-                      child: Text("ฉันยอมรับ ข้อกำหนดและเงื่อนไข"),
-                    ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 35),
 
                 // Submit Button
                 SizedBox(
+                  height: 50,
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () async {
                       await register();
-                      // TODO: เชื่อม Firebase Auth
-                      //ScaffoldMessenger.of(context).showSnackBar(
-                      // const SnackBar(content: Text("บันทึกข้อมูลเรียบร้อย")),
-                      //);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Colors.indigo,
                       padding: const EdgeInsets.symmetric(vertical: 15),
                     ),
-                    child: const Text("บันทึก", style: TextStyle(fontSize: 16)),
+                    child: const Text("บันทึก", style: TextStyle(fontSize: 20,color: Colors.white,fontWeight:FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -122,15 +125,17 @@ class _RegisterState extends State<Register> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("มีบัญชีอยู่แล้ว? "),
+                    const Text("มีบัญชีอยู่แล้ว? ",style: TextStyle(fontSize: 18),),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
                         );
                       },
-                      child: const Text("เข้าสู่ระบบ"),
+                      child: const Text("เข้าสู่ระบบ",style: TextStyle(fontSize: 16),),
                     ),
                   ],
                 ),

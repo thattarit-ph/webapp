@@ -27,9 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Web Board',
-      theme: ThemeData(),
-      home: Register(),
+      home: LoginPage(),
     );
   }
 }

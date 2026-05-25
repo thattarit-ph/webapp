@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 class CreatePost extends StatefulWidget {
   const CreatePost({super.key});
 
@@ -17,7 +18,18 @@ class _CreateThreadPageState extends State<CreatePost> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("สร้างกระทู้ใหม่")),
+      backgroundColor: Colors.indigo.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.indigo,
+        title: const Text(
+          "สร้างกระทู้ใหม่",
+          style: TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Container(
@@ -38,8 +50,8 @@ class _CreateThreadPageState extends State<CreatePost> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "แบ่งปันความรู้และประสบการณ์ด้านความปลอดภัยของคุณ",
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  "แบ่งปันความรู้และประสบการณ์",
+                  style: TextStyle(fontSize: 18, color: Colors.black),
                 ),
                 const SizedBox(height: 20),
 
@@ -47,7 +59,6 @@ class _CreateThreadPageState extends State<CreatePost> {
                 TextField(
                   controller: titleController,
                   decoration: const InputDecoration(
-                    labelText: "หัวข้อกระทู้",
                     hintText: "ระบุหัวข้อที่คุณต้องการแบ่งปัน...",
                     border: OutlineInputBorder(),
                   ),
@@ -59,7 +70,6 @@ class _CreateThreadPageState extends State<CreatePost> {
                   controller: contentController,
                   maxLines: 8,
                   decoration: const InputDecoration(
-                    labelText: "เนื้อหา",
                     hintText: "เขียนรายละเอียดของกระทู้นี้ที่นี่...",
                     border: OutlineInputBorder(),
                   ),
@@ -71,63 +81,73 @@ class _CreateThreadPageState extends State<CreatePost> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                    onPressed: () async {
-          // 1. ตรวจสอบว่ากรอกข้อมูลครบไหม
-          if (titleController.text.isEmpty || contentController.text.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("กรุณากรอกข้อมูลให้ครบถ้วน")),
-          );
-          return;
-          }
+                      onPressed: () async {
+                        // 1. ตรวจสอบว่ากรอกข้อมูลครบไหม
+                        if (titleController.text.isEmpty ||
+                            contentController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("กรุณากรอกข้อมูลให้ครบถ้วน"),
+                            ),
+                          );
+                          return;
+                        }
 
-          // 2. ดึงข้อมูล User ปัจจุบันที่ล็อกอินอยู่
-          final currentUser = FirebaseAuth.instance.currentUser;
+                        // 2. ดึงข้อมูล User ปัจจุบันที่ล็อกอินอยู่
+                        final currentUser = FirebaseAuth.instance.currentUser;
 
-          // ตรวจสอบกันเหนียวว่า User ล็อกอินอยู่จริงๆ
-          if (currentUser == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("กรุณาล็อกอินก่อนตั้งกระทู้")),
-          );
-          return;
-          }
+                        // ตรวจสอบกันเหนียวว่า User ล็อกอินอยู่จริงๆ
+                        if (currentUser == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("กรุณาล็อกอินก่อนตั้งกระทู้"),
+                            ),
+                          );
+                          return;
+                        }
 
-          try {
-          // 3. โยนข้อมูลขึ้น Collection ที่ชื่อว่า 'posts' พร้อมข้อมูลคนโพสต์
-          await FirebaseFirestore.instance.collection('posts').add({
-          "title": titleController.text.trim(),
-          "content": contentController.text.trim(),
-          "preview": contentController.text.length > 50
-          ? "${contentController.text.substring(0, 50)}..."
-              : contentController.text, // เขียนแบบย่อให้อ่านง่ายขึ้น
-          "comments_count": 0,
-          "likes": 0,
-          "views": 0,
-          "category": "ทั่วไป",
-          "comments": [],
-          "canComment": true,
-          "createdAt": FieldValue.serverTimestamp(),
+                        try {
+                          // 3. โยนข้อมูลขึ้น Collection ที่ชื่อว่า 'posts' พร้อมข้อมูลคนโพสต์
+                          await FirebaseFirestore.instance.collection('posts').add({
+                            "title": titleController.text.trim(),
+                            "content": contentController.text.trim(),
+                            "preview": contentController.text.length > 50
+                                ? "${contentController.text.substring(0, 50)}..."
+                                : contentController.text,
+                            // เขียนแบบย่อให้อ่านง่ายขึ้น
+                            "comments_count": 0,
+                            //"likes": 0,
+                            "views": 0,
+                            //"category": "ทั่วไป",
+                            "comments": [],
+                            "canComment": true,
+                            "createdAt": FieldValue.serverTimestamp(),
 
-          // 🟢 ส่วนที่เพิ่มเข้ามาเพื่อให้รู้ว่าใครสร้างกระทู้
-          "authorId": currentUser.uid, // เก็บ UID ไว้ใช้อ้างอิง (สำคัญมาก)
-          "authorName": currentUser.displayName ?? "ผู้ใช้งานทั่วไป", // เก็บชื่อ
-          // "authorPhoto": currentUser.photoURL ?? "", // เก็บรูปโปรไฟล์ (ถ้ามี)
-          });
+                            // 🟢 ส่วนที่เพิ่มเข้ามาเพื่อให้รู้ว่าใครสร้างกระทู้
+                            "authorId": currentUser.uid,
+                            // เก็บ UID ไว้ใช้อ้างอิง (สำคัญมาก)
+                            "authorName":
+                                currentUser.displayName ?? "ผู้ใช้งานทั่วไป",
+                            // เก็บชื่อ
 
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("บันทึกกระทู้เรียบร้อย")),
-          );
-          Navigator.pop(context); // กลับไปหน้าแรก
+                          });
 
-          } catch (e) {
-          log("message : $e");
-          ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
-          );
-          }
-          },
-            child: const Text("บันทึก"),
-          ),
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("บันทึกกระทู้เรียบร้อย"),
+                            ),
+                          );
+                          Navigator.pop(context); // กลับไปหน้าแรก
+                        } catch (e) {
+                          log("message : $e");
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
+                          );
+                        }
+                      },
+                      child: const Text("บันทึก"),
+                    ),
 
                     const SizedBox(width: 12),
                     OutlinedButton(
