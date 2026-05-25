@@ -129,7 +129,6 @@ class _RegisterState extends State<Register> {
                           context,
                           MaterialPageRoute(builder: (context) => const LoginPage()),
                         );
-                        // TODO: ไปหน้า Login
                       },
                       child: const Text("เข้าสู่ระบบ"),
                     ),

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -89,6 +91,7 @@ class _CreateThreadPageState extends State<CreatePost> {
                             "views": 0,
                             "category": "ทั่วไป", // ตรงนี้อนาคตค่อยทำ Dropdown เลือกหมวดหมู่ได้
                             "comments": [], // สร้าง Array ว่างๆ ไว้รอรับคอมเมนต์
+                            "canComment": true,
                             "createdAt": FieldValue.serverTimestamp(), // เก็บเวลาที่ตั้งกระทู้
                           });
 
@@ -99,6 +102,7 @@ class _CreateThreadPageState extends State<CreatePost> {
                           Navigator.pop(context); // กลับไปหน้าแรก
 
                         } catch (e) {
+                          log("message : $e");
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
                           );
