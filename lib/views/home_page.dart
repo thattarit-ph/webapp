@@ -9,6 +9,7 @@ class WebBoardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.indigo.shade50,
       appBar: AppBar(
         backgroundColor: Colors.indigo,
         title: const Text(

@@ -116,9 +116,9 @@ class _CreateThreadPageState extends State<CreatePost> {
                                 : contentController.text,
                             // เขียนแบบย่อให้อ่านง่ายขึ้น
                             "comments_count": 0,
-                            //"likes": 0,
+                            "likes": 0,
                             "views": 0,
-                            //"category": "ทั่วไป",
+                            "category": "ทั่วไป",
                             "comments": [],
                             "canComment": true,
                             "createdAt": FieldValue.serverTimestamp(),
@@ -129,7 +129,7 @@ class _CreateThreadPageState extends State<CreatePost> {
                             "authorName":
                                 currentUser.displayName ?? "ผู้ใช้งานทั่วไป",
                             // เก็บชื่อ
-
+                            // "authorPhoto": currentUser.photoURL ?? "", // เก็บรูปโปรไฟล์ (ถ้ามี)
                           });
 
                           if (!context.mounted) return;
@@ -146,7 +146,16 @@ class _CreateThreadPageState extends State<CreatePost> {
                           );
                         }
                       },
-                      child: const Text("บันทึก"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                      child: const Text(
+                        "บันทึก",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
 
                     const SizedBox(width: 12),
@@ -154,7 +163,13 @@ class _CreateThreadPageState extends State<CreatePost> {
                       onPressed: () {
                         Navigator.pop(context);
                       },
-                      child: const Text("ยกเลิก"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      child: const Text("ยกเลิก",style: TextStyle(fontWeight: FontWeight.bold),),
                     ),
                   ],
                 ),

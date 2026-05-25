@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 class PostDetail extends StatefulWidget {
   final String threadId;
+
   const PostDetail({super.key, required this.threadId});
 
   @override
@@ -19,16 +20,33 @@ class _PostDetailState extends State<PostDetail> {
     final String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("รายละเอียดกระทู้")),
+      backgroundColor: Colors.indigo.shade50,
+      appBar: AppBar(
+        title: const Text(
+          "รายละเอียดกระทู้",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 25,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+        backgroundColor: Colors.indigo,
+      ),
       body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('posts').doc(widget.threadId).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('posts')
+            .doc(widget.threadId)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text("ไม่พบกระทู้ที่เลือก หรือกระทู้ถูกลบไปแล้ว"));
+            return const Center(
+              child: Text("ไม่พบกระทู้ที่เลือก หรือกระทู้ถูกลบไปแล้ว"),
+            );
           }
 
           final article = snapshot.data!.data() as Map<String, dynamic>;
@@ -39,7 +57,8 @@ class _PostDetailState extends State<PostDetail> {
           final String? authorId = article["authorId"];
 
           // เช็กเงื่อนไขว่าผู้ใช้งานปัจจุบันคือเจ้าของกระทู้ใช่หรือไม่
-          final bool isOwner = currentUserId != null && currentUserId == authorId;
+          final bool isOwner =
+              currentUserId != null && currentUserId == authorId;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -48,27 +67,33 @@ class _PostDetailState extends State<PostDetail> {
               children: [
                 // Title
                 Text(
-                    article["title"] ?? "",
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+                  article["title"] ?? "",
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
 
                 // Content
                 Text(
-                    article["content"] ?? "",
-                    style: const TextStyle(fontSize: 16)
+                  article["content"] ?? "",
+                  style: const TextStyle(fontSize: 16),
                 ),
                 const Divider(height: 32),
 
                 // Comments Section
                 const Text(
-                    "ความคิดเห็น",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                  "ความคิดเห็น",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
 
                 if (commentsList.isEmpty)
-                  const Text("ยังไม่มีความคิดเห็น", style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    "ยังไม่มีความคิดเห็น",
+                    style: TextStyle(color: Colors.grey),
+                  ),
 
                 for (var comment in commentsList)
                   Card(
@@ -86,13 +111,29 @@ class _PostDetailState extends State<PostDetail> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton.icon(
-                      icon: Icon(canComment ? Icons.comments_disabled : Icons.comment),
-                      label: Text(canComment ? "ปิดคอมเมนต์" : "เปิดคอมเมนต์"),
+                      icon: Icon(
+                        canComment ? Icons.comments_disabled : Icons.comment,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        canComment ? "ปิดคอมเมนต์" : "เปิดคอมเมนต์",
+                        style: TextStyle(color: Colors.white),
+                      ),
                       onPressed: () async {
-                        await FirebaseFirestore.instance.collection('posts').doc(widget.threadId).update({
-                          "canComment": !canComment, // สลับค่าจาก true เป็น false หรือ false เป็น true
-                        });
+                        await FirebaseFirestore.instance
+                            .collection('posts')
+                            .doc(widget.threadId)
+                            .update({
+                              "canComment": !canComment,
+                              // สลับค่าจาก true เป็น false หรือ false เป็น true
+                            });
                       },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -117,7 +158,16 @@ class _PostDetailState extends State<PostDetail> {
                     children: [
                       OutlinedButton(
                         onPressed: () => commentController.clear(),
-                        child: const Text("ยกเลิก"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        child: const Text(
+                          "ยกเลิก",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
@@ -125,7 +175,11 @@ class _PostDetailState extends State<PostDetail> {
                           // เช็กกันเหนียวว่ามีคนล็อกอินอยู่ ถึงจะให้คอมเมนต์ได้
                           if (currentUserId == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("กรุณาล็อกอินก่อนแสดงความคิดเห็น")),
+                              const SnackBar(
+                                content: Text(
+                                  "กรุณาล็อกอินก่อนแสดงความคิดเห็น",
+                                ),
+                              ),
                             );
                             return;
                           }
@@ -134,13 +188,27 @@ class _PostDetailState extends State<PostDetail> {
                             final newComment = commentController.text.trim();
                             commentController.clear();
 
-                            await FirebaseFirestore.instance.collection('posts').doc(widget.threadId).update({
-                              "comments": FieldValue.arrayUnion([newComment]),
-                              "comments_count": FieldValue.increment(1),
-                            });
+                            await FirebaseFirestore.instance
+                                .collection('posts')
+                                .doc(widget.threadId)
+                                .update({
+                                  "comments": FieldValue.arrayUnion([
+                                    newComment,
+                                  ]),
+                                  "comments_count": FieldValue.increment(1),
+                                });
                           }
                         },
-                        child: const Text("ส่งความคิดเห็น"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        child: const Text(
+                          "ส่งความคิดเห็น",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
@@ -156,11 +224,11 @@ class _PostDetailState extends State<PostDetail> {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.lock, color: Colors.grey),
+                        Icon(Icons.lock),
                         SizedBox(width: 8),
                         Text(
-                            "กระทู้นี้ถูกปิดการแสดงความคิดเห็นโดยผู้สร้าง",
-                            style: TextStyle(color: Colors.black54)
+                          "กระทู้นี้ถูกปิดการแสดงความคิดเห็นโดยผู้สร้าง",
+                          style: TextStyle(color: Colors.black54),
                         ),
                       ],
                     ),
