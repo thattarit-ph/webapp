@@ -110,26 +110,6 @@ class WebBoardPage extends StatelessWidget {
                             Text("${post["comments_count"] ?? 0}"),
                             // ดึงตัวเลขจาก DB
                             const SizedBox(width: 16),
-                            Icon(
-                              Icons.thumb_up,
-                              size: 18,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text("${post["likes"] ?? 0}"),
-                            const SizedBox(width: 16),
-                            Icon(
-                              Icons.visibility,
-                              size: 18,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text("${post["views"] ?? 0}"),
-                            const Spacer(),
-                            Chip(
-                              label: Text(post["category"] ?? "ทั่วไป"),
-                              backgroundColor: Colors.blue[50],
-                            ),
                           ],
                         ),
                       ],
