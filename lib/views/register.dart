@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:webapp/views/login.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -124,6 +125,10 @@ class _RegisterState extends State<Register> {
                     const Text("มีบัญชีอยู่แล้ว? "),
                     TextButton(
                       onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                        );
                         // TODO: ไปหน้า Login
                       },
                       child: const Text("เข้าสู่ระบบ"),

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class PostDetail extends StatefulWidget {
@@ -41,77 +42,94 @@ class _PostDetailState extends State<PostDetail> {
 
     return Scaffold(
       appBar: AppBar(title: const Text("รายละเอียดกระทู้")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title
-            Text(article["title"] as String,
-                style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
+        body: StreamBuilder<DocumentSnapshot>(
+          // ดึงข้อมูลกระทู้เดียวตาม threadId ที่ถูกส่งมา
+          stream: FirebaseFirestore.instance.collection('posts').doc(widget.threadId).snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData || !snapshot.data!.exists) {
+              return const Center(child: Text("ไม่พบกระทู้ที่เลือก หรือกระทู้ถูกลบไปแล้ว"));
+            }
 
-            // Content
-            Text(article["content"] as String,
-                style: const TextStyle(fontSize: 16)),
-            const Divider(height: 32),
+            final article = snapshot.data!.data() as Map<String, dynamic>;
+            final commentsList = article["comments"] as List<dynamic>? ?? [];
 
-            // Comments
-            const Text("ความคิดเห็น",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(article["title"] ?? "",
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
 
-            for (var comment in article["comments"] as List)
-              Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(comment as String),
-                ),
+                  // Content
+                  Text(article["content"] ?? "", style: const TextStyle(fontSize: 16)),
+                  const Divider(height: 32),
+
+                  // Comments Section
+                  const Text("ความคิดเห็น", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+
+                  if (commentsList.isEmpty)
+                    const Text("ยังไม่มีความคิดเห็น เป็นคนแรกที่คอมเมนต์สิ!", style: TextStyle(color: Colors.grey)),
+
+                  for (var comment in commentsList)
+                    Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(comment.toString()),
+                      ),
+                    ),
+
+                  const SizedBox(height: 20),
+
+                  // Comment Box
+                  TextField(
+                    controller: commentController,
+                    decoration: const InputDecoration(
+                      labelText: "เขียนความคิดเห็นของคุณ...",
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () => commentController.clear(),
+                        child: const Text("ยกเลิก"),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (commentController.text.isNotEmpty) {
+                            final newComment = commentController.text.trim();
+                            commentController.clear();
+
+                            // อัปเดตข้อมูลลง Firestore: เพิ่มข้อความลงใน Array และบวกเลขคอมเมนต์
+                            await FirebaseFirestore.instance.collection('posts').doc(widget.threadId).update({
+                              "comments": FieldValue.arrayUnion([newComment]), // เอาเข้า Array
+                              "comments_count": FieldValue.increment(1), // บวกตัวเลขโชว์หน้าแรก 1
+                            });
+                          }
+                        },
+                        child: const Text("ส่งความคิดเห็น"),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-
-            const SizedBox(height: 20),
-
-            // Comment Box
-            TextField(
-              controller: commentController,
-              decoration: const InputDecoration(
-                labelText: "เขียนความคิดเห็นของคุณ...",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 12),
-
-            // Buttons: ส่ง + ยกเลิก
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton(
-                  onPressed: () {
-                    commentController.clear();
-                  },
-                  child: const Text("ยกเลิก"),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      if (commentController.text.isNotEmpty) {
-                        (article["comments"] as List)
-                            .add(commentController.text);
-                        commentController.clear();
-                      }
-                    });
-                  },
-                  child: const Text("ส่งความคิดเห็น"),
-                ),
-              ],
-            ),
-          ],
+            );
+          },
         ),
-      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class CreatePost extends StatefulWidget {
@@ -68,19 +69,44 @@ class _CreateThreadPageState extends State<CreatePost> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        // TODO: เชื่อม Firebase Firestore
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("บันทึกกระทู้เรียบร้อย")),
-                        );
+                      onPressed: () async {
+                        // ตรวจสอบว่ากรอกข้อมูลครบไหม
+                        if (titleController.text.isEmpty || contentController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("กรุณากรอกข้อมูลให้ครบถ้วน")),
+                          );
+                          return;
+                        }
+
+                        try {
+                          // โยนข้อมูลขึ้น Collection ที่ชื่อว่า 'posts'
+                          await FirebaseFirestore.instance.collection('posts').add({
+                            "title": titleController.text.trim(),
+                            "content": contentController.text.trim(),
+                            "preview": contentController.text.substring(0, contentController.text.length > 50 ? 50 : contentController.text.length) + "...", // ทำพรีวิวสั้นๆ
+                            "comments_count": 0,
+                            "likes": 0,
+                            "views": 0,
+                            "category": "ทั่วไป", // ตรงนี้อนาคตค่อยทำ Dropdown เลือกหมวดหมู่ได้
+                            "comments": [], // สร้าง Array ว่างๆ ไว้รอรับคอมเมนต์
+                            "createdAt": FieldValue.serverTimestamp(), // เก็บเวลาที่ตั้งกระทู้
+                          });
+
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("บันทึกกระทู้เรียบร้อย")),
+                          );
+                          Navigator.pop(context); // กลับไปหน้าแรก
+
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("เกิดข้อผิดพลาด: $e")),
+                          );
+                        }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
-                      ),
                       child: const Text("บันทึก"),
                     ),
+
                     const SizedBox(width: 12),
                     OutlinedButton(
                       onPressed: () {
